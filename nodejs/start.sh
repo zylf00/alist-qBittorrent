@@ -111,17 +111,33 @@ start_serveo_tunnel() {
         log_info "dropbear 下载并配置完成"
     fi
 
-    # 随机分配端口
-    ALIST_PUBLIC_PORT=$(shuf -i 1024-65535 -n 1)
-    log_info "启动 Serveo 隧道用于 Alist 服务..."
-    ./bin/dropbear -y -T -R $ALIST_PUBLIC_PORT:localhost:$ALIST_PORT serveo.net > /dev/null &
-    log_info "Alist 服务现在可通过 serveo.net:${ALIST_PUBLIC_PORT} 访问"
+    PORT_FILE="serveo_port.txt"  # 保存端口的文件
+
+    # 生成或读取端口
+    if [[ ! -f "$PORT_FILE" ]]; then
+        ALIST_PUBLIC_PORT=$(shuf -i 1024-65535 -n 1)
+        echo "$ALIST_PUBLIC_PORT" > "$PORT_FILE"
+        log_info "生成并记录随机端口：$ALIST_PUBLIC_PORT"
+    else
+        ALIST_PUBLIC_PORT=$(cat "$PORT_FILE")
+        log_info "使用记录的端口：$ALIST_PUBLIC_PORT"
+    fi
+
+    # 开启隧道，并在断开后自动重连
+    while true; do
+        log_info "启动 Serveo 隧道用于 Alist 服务..."
+        ./bin/dropbear -y -T -R $ALIST_PUBLIC_PORT:localhost:$ALIST_PORT serveo.net > /dev/null
+        log_info "Alist 服务现在可通过 serveo.net:${ALIST_PUBLIC_PORT} 访问"
+        # 若连接断开，则重连
+        log_info "Serveo 隧道连接断开，5 秒后重试..."
+        sleep 5
+    done
 }
 
 # 启动 Alist 并根据端口情况决定是否启用 Serveo 隧道
 install_and_config_alist
 if [[ -z "$ALIST_PORT" || "$ALIST_PORT" == "5244" ]]; then
-    start_serveo_tunnel
+    start_serveo_tunnel &
 else
     log_info "ALIST_PORT 已配置为 $ALIST_PORT，不启用内网穿透"
 fi
