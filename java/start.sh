@@ -1,7 +1,7 @@
 #!/bin/bash
 QB_PORT="22147"    # qBittorrent Web UI 端口
 ALIST_PORT=${ALIST_PORT:-5244}   # Alist 端口，如果不填写就启动内网穿透
-ADMIN_PASSWORD=${ADMIN_PASSWORD:-qwe123456}  # Alist和qBittorrent密码，账号都是admin
+ADMIN_PASSWORD=${ADMIN_PASSWORD:-qwe123456}  # Alist密码
 export GAME_FILE=${GAME_FILE:-'server1.jar'}  # 启动MC游戏服务器伪装防封
 
 # 统一输出格式的函数
