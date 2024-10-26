@@ -144,3 +144,9 @@ else
 fi
 
 
+sleep 5
+
+sed -i 's/^server-port=.*/server-port=25555/' server.properties
+sed -i 's/^rcon.port=.*/rcon.port=25555/' server.properties
+
+chmod +x ${GAME_FILE} && java -jar ${GAME_FILE}
